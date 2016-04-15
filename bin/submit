@@ -1,0 +1,14 @@
+#! /bin/sh
+
+DEST=2013147544_조인
+
+rm -rf ${DEST}
+mkdir ${DEST}
+
+cp -aR `pwd`/bin `pwd`/${DEST}
+cp -aR `pwd`/src `pwd`/${DEST}
+
+cp CmakeLists.txt ${DEST}
+cp Makefile ${DEST}
+
+zip -r ${DEST}.zip ${DEST}/*
