@@ -24,9 +24,11 @@ public:
     ~Field();
 
     void render();
-    void createSnowMan();
+    void createSnowMan(float velocity, bool isSuperSnowMan);
     void moveUser(float deltaX);
-    void moveSnowMans(float distance);
+    void moveCameraVertically(float height);
+
+    void moveSnowMans();
 
     int getCollidedSnowManCount();
 
@@ -48,7 +50,7 @@ private:
 
     SnowMan *snowMans[maxSnowManCount];
 
-    void enableNextSnowMan(Vector _core, Vector _direction);
+    void enableNextSnowMan(Vector _core, Vector _direction, float _velocity, bool isSuperSnowMan);
     void renderField();
     void renderSnowMans();
 

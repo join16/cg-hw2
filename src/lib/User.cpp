@@ -15,8 +15,9 @@
 User::User(Vector _core, float _bodyRadius, float _headRadius)
     : Object(_core, _bodyRadius, _headRadius) {
 
-    gaze = new Vector(0.0f, -0.4f, -1.0f);
     lookUp = new Vector(0.0f, 1.0f, 0.0f);
+    frontDirection = new Vector(0.0f, 0.0f, -5 * bodyRadius);
+    cameraHeight = bodyRadius + (2 * headRadius);
 }
 
 
@@ -24,7 +25,7 @@ User::User(Vector _core, float _bodyRadius, float _headRadius)
 // methods
 //
 Vector User::getCameraPoint() {
-    float y = core->getY() + bodyRadius + (2 * headRadius);
+    float y = core->getY() + cameraHeight;
 
     return Vector(core->getX(), y, core->getZ());
 }
@@ -32,9 +33,10 @@ Vector User::getCameraPoint() {
 void User::setGlCamera() {
 
     Vector cam = getCameraPoint();
+    Vector lookAt = *core + *frontDirection;
 
     gluLookAt(cam.getX(), cam.getY(), cam.getZ(),
-              cam.getX() + gaze->getX(), cam.getY() + gaze->getY(), cam.getZ() + gaze->getZ(),
+              lookAt.getX(), lookAt.getY(), lookAt.getZ(),
               lookUp->getX(), lookUp->getY(), lookUp->getZ()
     );
 }
@@ -49,4 +51,13 @@ bool User::isLesserThanMaxX(float maxX) {
     float x = core->getX();
 
     return (x + bodyRadius) < maxX;
+}
+
+void User::addCameraHeight(float height) {
+    float changedHeight = cameraHeight + height;
+
+    // min camera height = 0
+    if (changedHeight >= 0) {
+     cameraHeight = changedHeight;
+    }
 }

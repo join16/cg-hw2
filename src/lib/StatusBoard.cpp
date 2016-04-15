@@ -9,27 +9,23 @@
 #include <string>
 
 #include "StatusBoard.h"
+#include "RGBColor.h"
 
 using namespace std;
 
-string message = "Collided: ";
 
 StatusBoard::StatusBoard(float _x, float _y, int _windowWidth, int _windowHeight)
     : x(_x), y(_y), windowWidth(_windowWidth), windowHeight(_windowHeight) {}
 
-void StatusBoard::setCollidedCount(int _collidedCount) {
-    collidedCount = _collidedCount;
-}
-
-void StatusBoard::render() {
-    string messageToDisplay = message + to_string(collidedCount);
+void StatusBoard::render(RGBColor color, string str) {
 
     setOrthographicProjection();
 
     glPushMatrix();
     glLoadIdentity();
 
-    renderBitmapString(GLUT_BITMAP_HELVETICA_18, messageToDisplay);
+    color.setGlColor();
+    renderBitmapString(GLUT_BITMAP_HELVETICA_18, str);
 
     glPopMatrix();
 

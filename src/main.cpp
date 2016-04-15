@@ -6,6 +6,7 @@
 #endif
 
 #include <iostream>
+#include <string>
 
 // include custom libs
 #include "lib/Field.h"
@@ -13,14 +14,14 @@
 
 using namespace std;
 
+int window;
+
 int windowWidth(640), windowHeight(640);
 int windowPositionX(100), windowPositionY(100);
 
-// status board position
-int boardX(50), boardY(30);
-
 // snowMan movement distance
-float snowManMovementDistance = 0.1f;
+float snowManVelocity = 0.2f;
+float userVelocity = 0.3;
 
 float fieldWidth(100.0f), fieldHeight(100.0f);
 
@@ -29,23 +30,38 @@ float userInitLine = 5.0f;
 
 float bodyRadius(0.75f), headRadius(0.25f);
 
-// user movement along x axis
-float deltaMove(0);
+// user movement along x, y axis
+float deltaLeft(0), deltaRight(0), deltaUp(0), deltaDown(0);
 
-// for creating snowMans
-int elapsedSecond(0);
+// ms to call handleMovement function
+unsigned int msToMove(10);
 
+// ms to create new snowMan
+unsigned int msToCreateSnowMan(300), msToCreateSuperSnowMan(3000);
+
+bool paused = false;
+
+// field
 Field *field;
 RGBColor fieldColor(0.9f, 0.9f, 0.9f);
 
-StatusBoard *board;
+// collision board
+StatusBoard *collisionBoard;
+RGBColor collisionTextColor(1.0f, 0.4f, 0.6f);
+int collisionBoardX(30), collisionBoardY(50);
+string collisionText = "Collided: ";
+
+StatusBoard *centerBoard;
+RGBColor pausedTextColor(0.0f, 0.6f, 1.0f);
+string pausedText = "Pause (space: resume,  q: Exit)";
+int centerBoardX(175), centerBoardY(250);
 
 // function declarations
 void renderScene();
 void resizeScene(int width, int height);
 void pressKey(int key, int xx, int yy);
 void releaseKey(int key, int xx, int yy);
-void handleMovement();
+void handleMovement(int ms);
 
 // main
 int main(int argc, char *argv[]) {
@@ -59,20 +75,16 @@ int main(int argc, char *argv[]) {
     // initialize window
     glutInitWindowPosition(windowPositionX, windowPositionY);
     glutInitWindowSize(windowWidth, windowHeight);
-    glutCreateWindow("CG Hw2");
+    window = glutCreateWindow("Snow Hunter");
 
     // initialize data
     field = new Field(fieldWidth, fieldHeight, fieldColor, bodyRadius, headRadius, userInitLine);
-    board = new StatusBoard(boardX, boardY, windowWidth, windowHeight);
-
-    // create 10 snowMans
-    for (int i = 0; i < 10; i++) {
-        field->createSnowMan();
-    }
+    collisionBoard = new StatusBoard(collisionBoardX, collisionBoardY, windowWidth, windowHeight);
+    centerBoard = new StatusBoard(centerBoardX, centerBoardY, windowWidth, windowHeight);
 
     glutReshapeFunc(resizeScene);
     glutDisplayFunc(renderScene);
-    glutIdleFunc(handleMovement);
+    glutTimerFunc(msToMove, handleMovement, 0);
 
     // add keyboard functions
     glutSpecialFunc(pressKey);
@@ -99,11 +111,15 @@ void renderScene() {
     // reset transformation
     glLoadIdentity();
 
+    if (paused) {
+        centerBoard->render(pausedTextColor, pausedText);
+    }
+
     field->render();
 
-    board->setCollidedCount(field->getCollidedSnowManCount());
+    int collidedCount = field->getCollidedSnowManCount();
 
-    board->render();
+    collisionBoard->render(collisionTextColor, collisionText + to_string(collidedCount));
 
     glutSwapBuffers();
 }
@@ -141,12 +157,35 @@ void pressKey(int key, int xx, int yy) {
 
     switch (key) {
         case GLUT_KEY_LEFT:
-            deltaMove = -0.1f;
+            deltaLeft = userVelocity;
+            deltaRight = 0.0f;
             break;
 
         case GLUT_KEY_RIGHT:
-            deltaMove = 0.1f;
+            deltaLeft = 0.0f;
+            deltaRight = userVelocity;
             break;
+
+        case GLUT_KEY_UP:
+            deltaUp = 0.1f;
+            deltaDown = 0.0f;
+            break;
+
+        case GLUT_KEY_DOWN:
+            deltaUp = 0.0f;
+            deltaDown = 0.1f;
+            break;
+
+        case ' ':
+            paused = !paused;
+
+            // to display "Paused" text
+            glutPostRedisplay();
+            break;
+
+        case 'q':
+            glutDestroyWindow(window);
+            exit(0);
 
         default:
             return;
@@ -158,27 +197,51 @@ void releaseKey(int key, int xx, int yy) {
 
     switch (key) {
         case GLUT_KEY_LEFT:
-        case GLUT_KEY_RIGHT:
-            deltaMove = 0;
+            deltaLeft = 0;
             break;
+
+        case GLUT_KEY_RIGHT:
+            deltaRight = 0;
+            break;
+
+        case GLUT_KEY_UP:
+            deltaUp = 0;
+            break;
+
+        case GLUT_KEY_DOWN:
+            deltaDown = 0;
+            break;
+
+        default:
+            return;
     }
 }
 
-void handleMovement() {
+void handleMovement(int ms) {
 
-    if (deltaMove) {
-        field->moveUser(deltaMove);
+    glutTimerFunc(msToMove, handleMovement, ms + msToMove);
+
+    // is paused, no action
+    if (paused) {
+        return;
     }
 
-    // creating new snowMan if 1 second has passed from last snowMan creation
-    long time = glutGet(GLUT_ELAPSED_TIME);
-
-    if (time > (elapsedSecond * 1000)) {
-        elapsedSecond++;
-        field->createSnowMan();
+    if (-deltaLeft + deltaRight) {
+        field->moveUser(-deltaLeft + deltaRight);
     }
 
-    field->moveSnowMans(snowManMovementDistance);
+    if (-deltaDown + deltaUp) {
+        field->moveCameraVertically(-deltaDown + deltaUp);
+    }
+
+    // create snowMan for every msToCreateSnowMan
+    if (ms % msToCreateSnowMan == 0) {
+        bool isSuperSnowMan = ms % msToCreateSuperSnowMan == 0;
+
+        field->createSnowMan(snowManVelocity, isSuperSnowMan);
+    }
+
+    field->moveSnowMans();
 
     glutPostRedisplay();
 }

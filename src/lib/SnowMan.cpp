@@ -5,6 +5,7 @@
 #include <GL/glut.h>
 #endif
 
+
 #include "SnowMan.h"
 
 const RGBColor snowManColor = RGBColor::getWhite();
@@ -16,14 +17,11 @@ const RGBColor snowManNoseColor = RGBColor(1.0f, 0.5f, 0.5f);
 //
 
 SnowMan::SnowMan(float _bodyRadius, float _headRadius)
-    : SnowMan(Vector(), _bodyRadius, _headRadius, Vector()) {}
-
-SnowMan::SnowMan(Vector _core, float _bodyRadius, float _headRadius, Vector _direction)
-    : Object(_core, _bodyRadius, _headRadius) {
-
-    direction = new Vector(_direction);
+    : Object(Vector(), _bodyRadius, _headRadius) {
+    direction = new Vector();
     direction->normalize();
 
+    color = new RGBColor(snowManColor);
 }
 
 //
@@ -60,8 +58,9 @@ void SnowMan::render() {
     glPopMatrix();
 }
 
-void SnowMan::moveToDirection(float distance) {
-    move(*direction * distance);
+void SnowMan::moveToDirection() {
+    movedDistance += velocity;
+    move(*direction * velocity);
 }
 
 bool SnowMan::isLesserThanMaxX(float maxX) {
@@ -80,26 +79,44 @@ void SnowMan::disable() {
     enabled = false;
 }
 
-void SnowMan::reset(Vector _core, Vector _direction) {
+void SnowMan::reset(Vector _core, Vector _direction, float _velocity) {
+    velocity = _velocity;
     core->set(_core);
     direction->set(_direction);
+    color->set(snowManColor);
 
     direction->normalize();
 }
 
+void SnowMan::changeDirection(Vector _direction) {
+    direction->set(_direction);
+    direction->normalize();
+}
+
+float SnowMan::getMovedDistance() {
+    return movedDistance;
+}
+
+void SnowMan::setVelocity(float _velocity) {
+    velocity = _velocity;
+}
+
+void SnowMan::setColor(RGBColor _color) {
+    color->set(_color);
+}
 
 //
 // private methods
 //
 
 void SnowMan::renderBody() {
-    snowManColor.setGlColor();
+    color->setGlColor();
 
     glutSolidSphere(bodyRadius, 20, 20);
 }
 
 void SnowMan::renderHead() {
-    snowManColor.setGlColor();
+    color->setGlColor();
 
     glTranslatef(0.0f, bodyRadius + headRadius, 0.0f);
     glutSolidSphere(headRadius, 20, 20);

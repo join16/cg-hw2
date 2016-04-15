@@ -6,6 +6,7 @@
 #endif
 
 #include <iostream>
+#include <math.h>
 
 #include "Field.h"
 
@@ -55,23 +56,18 @@ void Field::render() {
     renderSnowMans();
 }
 
-void Field::createSnowMan() {
+void Field::createSnowMan(float velocity, bool isSuperSnowMan) {
 
     float currentUserX = (user->getCore()).getX();
     float quarterHeight = height / 4;
     float quarterWidth = width / 4;
     float halfWidth = quarterWidth * 2;
-    float halfHeight = quarterHeight * 2;
-
-    // get absolute value of currentUserX
-    if (currentUserX < 0) {
-        currentUserX *= -1;
-    }
 
     // random coordinates for snowMan
-    float x = ((rand() % (int) halfWidth) + currentUserX - quarterWidth);
-    float z = -((rand() % (int) halfHeight) + 1.0f);
+    float x = (rand() % (int) halfWidth) - quarterWidth + currentUserX;
+    float z = -((rand() % (int) quarterHeight) + quarterHeight);
 
+    // ensure snowMan is created inside field
     if (x > halfWidth) {
         x = halfWidth;
     } else if (x < -halfWidth) {
@@ -82,7 +78,7 @@ void Field::createSnowMan() {
     Vector core(x, bodyRadius, z);
     Vector direction = user->getCore() - core;
 
-    enableNextSnowMan(core, direction);
+    enableNextSnowMan(core, direction, velocity, isSuperSnowMan);
 }
 
 void Field::moveUser(float deltaX) {
@@ -98,10 +94,16 @@ void Field::moveUser(float deltaX) {
     user->move(Vector(deltaX, 0, 0));
 }
 
-void Field::moveSnowMans(float distance) {
-    SnowMan *snowMan;
+void Field::moveCameraVertically(float height) {
+    user->addCameraHeight(height);
+}
 
-    float minZ = height / 2;
+void Field::moveSnowMans() {
+    SnowMan *snowMan;
+    Vector userCore = user->getCore();
+
+    float maxZ = (user->getCore()).getZ();
+    float distanceToChangeDirection = height / 10;
 
     for (int i = 0; i < maxSnowManCount; i++) {
         snowMan = snowMans[i];
@@ -111,25 +113,56 @@ void Field::moveSnowMans(float distance) {
             continue;
         }
 
-        snowMan->moveToDirection(distance);
+        snowMan->moveToDirection();
 
-        if (!snowMan->isLesserThanMaxX(minZ)) {
+        if (!snowMan->isLesserThanMaxX(maxZ)) {
             snowMan->disable();
 
         } else if (snowMan->isCollided(user)) {
             collidedSnowManCount++;
             snowMan->disable();
         }
+
+        // if snowMan moved enough to change direction
+        if (snowMan->getMovedDistance() > distanceToChangeDirection) {
+            Vector snowManCore = snowMan->getCore();
+            Vector direction = userCore - snowManCore;
+
+            // sign of x value of direction
+            float xSign = (direction.getX() > 0) ?
+                          1 :
+                          -1;
+
+            // absolute values
+            float xAbsolute = fabsf(direction.getX());
+            float zAbsolute = fabsf(direction.getZ());
+
+            // absolute x can't be larger than absolute z (for proper game)
+            if (xAbsolute > zAbsolute) {
+                direction.setX(xSign * zAbsolute);
+            }
+
+            snowMan->changeDirection(direction);
+        }
     }
 }
 
-void Field::enableNextSnowMan(Vector _core, Vector _direction) {
+void Field::enableNextSnowMan(Vector _core,
+                              Vector _direction,
+                              float _velocity,
+                              bool isSuperSnowMan) {
 
     for (int i = 0; i < maxSnowManCount; i++) {
         if (!snowMans[i]->isEnabled()) {
 
-            snowMans[i]->reset(_core, _direction);
+            snowMans[i]->reset(_core, _direction, _velocity);
             snowMans[i]->enable();
+
+            if (isSuperSnowMan) {
+                snowMans[i]->setVelocity(_velocity * 2);
+                snowMans[i]->setColor(RGBColor(1.0f, 0.0f, 0.0f));
+            }
+
             return;
         }
     }

@@ -12,11 +12,14 @@ public:
     void setGlCamera();
     Vector getCameraPoint();
 
+    void addCameraHeight(float height);
+
     bool isGreaterThanMinX(float maxX);
     bool isLesserThanMaxX(float maxX);
 
 private:
-    Vector *lookUp, *gaze;
+    Vector *lookUp, *frontDirection;
+    float cameraHeight;
 
 };
 

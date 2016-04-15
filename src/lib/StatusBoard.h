@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+#include "RGBColor.h"
+
 using namespace std;
 
 class StatusBoard {
@@ -11,12 +13,10 @@ class StatusBoard {
 public:
     StatusBoard(float _x, float _y, int _windowWidth, int _windowHeight);
 
-    void setCollidedCount(int _collidedCount);
-    void render();
+    void render(RGBColor textColor, string str);
 
 private:
     float x, y;
-    int collidedCount = 0;
     int windowWidth, windowHeight;
 
     void setOrthographicProjection();

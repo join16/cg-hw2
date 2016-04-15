@@ -8,17 +8,21 @@
 class SnowMan : public Object {
 
 public:
+
     SnowMan(float _bodyRadius, float _headRadius);
-    SnowMan(Vector _core, float _bodyRadius, float _headRadius, Vector _direction);
+
     ~SnowMan();
 
     void render();
-    void moveToDirection(float distance);
+    void moveToDirection();
+    void changeDirection(Vector _direction);
 
-    void reset(Vector _core, Vector _direction);
+    void reset(Vector _core, Vector _direction, float _velocity);
+    void setVelocity(float _velocity);
+    void setColor(RGBColor _color);
+    float getMovedDistance();
 
     bool isLesserThanMaxX(float maxX);
-
     bool isEnabled();
 
     void enable();
@@ -26,8 +30,11 @@ public:
 
 private:
     Vector *direction;
+    RGBColor *color;
 
     bool enabled = false;
+    float velocity = 0.0f;
+    float movedDistance = 0.0f;
 
     void renderBody();
     void renderHead();
