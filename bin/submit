@@ -10,5 +10,6 @@ cp -aR `pwd`/src `pwd`/${DEST}
 
 cp CMakeLists.txt ${DEST}
 cp Makefile ${DEST}
+cp README.md ${DEST}
 
 zip -r ${DEST}.zip ${DEST}/*
