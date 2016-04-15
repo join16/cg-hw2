@@ -8,7 +8,7 @@ mkdir ${DEST}
 cp -aR `pwd`/bin `pwd`/${DEST}
 cp -aR `pwd`/src `pwd`/${DEST}
 
-cp CmakeLists.txt ${DEST}
+cp CMakeLists.txt ${DEST}
 cp Makefile ${DEST}
 
 zip -r ${DEST}.zip ${DEST}/*
