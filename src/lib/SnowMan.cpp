@@ -118,7 +118,7 @@ void SnowMan::renderBody() {
 void SnowMan::renderHead() {
     color->setGlColor();
 
-    glTranslatef(0.0f, bodyRadius + headRadius, 0.0f);
+    glTranslatef(0.0f, bodyRadius + (headRadius / 2), 0.0f);
     glutSolidSphere(headRadius, 20, 20);
 }
 

@@ -28,7 +28,7 @@ float fieldWidth(100.0f), fieldHeight(100.0f);
 // z coordinate of initial user position
 float userInitLine = 5.0f;
 
-float bodyRadius(0.75f), headRadius(0.25f);
+float bodyRadius(0.75f), headRadius(0.3f);
 
 // user movement along x, y axis
 float deltaLeft(0), deltaRight(0), deltaUp(0), deltaDown(0);
