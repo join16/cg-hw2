@@ -1,6 +1,6 @@
 #! /bin/sh
 
-DEST=2013147544_조인
+DEST=hw2_2013147544_조인
 
 rm -rf ${DEST}
 mkdir ${DEST}
